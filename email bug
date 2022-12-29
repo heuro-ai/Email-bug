@@ -1,0 +1,36 @@
+const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: "XXXXXXX",
+      androidClientId:"XXXXXXX",
+      iosClientId:"XXXXXXX"
+  });
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState();
+  const sendNotification=useNotification()
+  //console.log(sendNotification)
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      const auth = getAuth();
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential);
+      let decoded = jwt_decode(id_token);
+      socialLogin(decoded)
+    }
+  }, [response]);
+And on server using this code to sending email
+
+const { google } = require('googleapis');
+const path = require('path');
+const fs = require('fs');
+const credentials = require('./credentials.json');
+// Replace with the code you received from Google
+const code = 'XXXXXXX';
+//const code="XXXXXXX"
+const { client_secret, client_id, redirect_uris } = credentials.installed;
+const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+oAuth2Client.getToken(code).then(({ tokens }) => {
+  console.log('first')
+  const tokenPath = path.join(__dirname, 'token.json');
+  fs.writeFileSync(tokenPath, JSON.stringify(tokens));
+  console.log('Access token and refresh token stored to token.json');
+}).catch(err=>console.log(err));
